@@ -5,7 +5,7 @@ TOCTitle: Tips and Tricks
 PageTitle: Visual Studio Code Remote Development Troubleshooting Tips and Tricks
 ContentId: 42e65445-fb3b-4561-8730-bbd19769a160
 MetaDescription: Visual Studio Code Remote Development troubleshooting tips and tricks for SSH, Containers, and the Windows Subsystem for Linux (WSL)
-DateApproved: 05/02/2024
+DateApproved: 12/11/2024
 ---
 # Remote Development Tips and Tricks
 
@@ -16,6 +16,26 @@ For tips and questions about [GitHub Codespaces](https://github.com/features/cod
 ## SSH tips
 
 SSH is powerful and flexible, but this also adds some setup complexity. This section includes some tips and tricks for getting the Remote - SSH extension up and running in different environments.
+
+### Configuring the $EDITOR variable
+
+For macOS / linux remote hosts, add this snippet to your shell configuration file (like `.bashrc` or `.zshrc`)
+
+```bash
+if [ "$VSCODE_INJECTION" = "1" ]; then
+    export EDITOR="code --wait" # or 'code-insiders' if you're using VS Code Insiders
+fi
+```
+
+For Windows hosts, here is the equivalent Powershell:
+
+```pwsh
+if ($env:VSCODE_INJECTION -eq "1") {
+    $env:EDITOR = "code --wait"  # or 'code-insiders' for VS Code Insiders
+}
+```
+
+Now running a terminal command that uses the $EDITOR variable, like `git commit`, will open the file in VS Code instead of the default terminal-based editor (like `vim` or `nano`).
 
 ### Configuring key based authentication
 
@@ -43,13 +63,13 @@ ssh-keygen -t ed25519 -b 4096
 
 * For macOS / Linux, run the following shell command, replacing the path to your private key if necessary:
 
-    ```
+    ```bash
     chmod 400 ~/.ssh/id_ed25519
     ```
 
 * For Windows, run the following command in PowerShell to grant explicit read access to your username:
 
-    ```
+    ```powershell
     icacls "privateKeyPath" /grant <username>:R
     ```
 
@@ -722,7 +742,7 @@ This is a known problem with the WSL file system implementation ([Microsoft/WSL#
 
 To avoid the issue, set `remote.WSL.fileWatcher.polling` to true. However, polling based has a performance impact for large workspaces.
 
-For large workspace you may want to increase the polling interval, `remote.WSL.fileWatcher.pollingInterval`, and control the folders that are watched with `files.watcherExclude`.
+For large workspace you may want to increase the polling interval, `remote.WSL.fileWatcher.pollingInterval`, and control the folders that are watched with `setting(files.watcherExclude)`.
 
 [WSL 2](https://learn.microsoft.com/windows/wsl/compare-versions#whats-new-in-wsl-2) does not have that file watcher problem and is not affected by the new setting.
 
@@ -769,7 +789,7 @@ Just follow these steps:
 2. Configure WSL to use the same credential helper, but running the following in a **WSL terminal**:
 
     ```bash
-     git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager-core.exe"
+     git config --global credential.helper "/mnt/c/Program\ Files/Git/mingw64/bin/git-credential-manager.exe"
     ```
 
 Any password you enter when working with Git on the Windows side will now be available to WSL and vice versa.
